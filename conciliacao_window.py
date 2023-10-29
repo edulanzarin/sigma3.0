@@ -14,15 +14,18 @@ from PyQt5.QtWidgets import (
     QFileDialog,
     QTableWidgetItem,
     QDialog,
+    QInputDialog,
 )
 from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import Qt, pyqtSignal, QSize
+from PyQt5.QtCore import Qt, QSize
 from processing_window import ProcessingWindow
 from empresa_sql_thread import EmpresaSQLThread
 from error_window import MyErrorMessage
 from listar_conciliacoes_thread import ListarConciliacoesThread
 from cadastrar_conciliacoes_thread import CadastrarConciliacoesThread
 from cadastrar_conciliacao_dialog import CadastrarDialog
+from excel_thread import ExcelProcessingThread
+from connect_database import conectar_banco
 
 
 class ConciliacoesWindow(QWidget):
@@ -30,6 +33,7 @@ class ConciliacoesWindow(QWidget):
         super().__init__()
 
         self.combo_empresas = QComboBox()
+        self.editing_row = None
 
         self.excel_label = QLabel("Clique para selecionar a lista de conciliações")
         self.excel_label.setStyleSheet(
@@ -60,8 +64,8 @@ class ConciliacoesWindow(QWidget):
             "Cadastrar", self.cadastrar_button_clicked
         )
 
-        self.save_button = self.create_button("Lista", self.excel_button_clicked)
-        self.save_button.setEnabled(False)
+        self.excel_button = self.create_button("Lista", self.excel_button_clicked)
+        self.excel_button.setEnabled(False)
 
         self.init_layout()
         self.init_sql_empresa_thread()
@@ -117,7 +121,7 @@ class ConciliacoesWindow(QWidget):
         layout.addStretch(1)
         layout.addWidget(self.listar_button)
         layout.addWidget(self.cadastrar_button)
-        layout.addWidget(self.save_button)
+        layout.addWidget(self.excel_button)
         layout.addStretch(1)
         return layout
 
@@ -134,6 +138,7 @@ class ConciliacoesWindow(QWidget):
         main_layout.addWidget(self.table_widget)
 
         self.setLayout(main_layout)
+        self.table_widget.cellDoubleClicked.connect(self.edit_cell)
 
     def init_sql_empresa_thread(self):
         self.sql_thread = EmpresaSQLThread()
@@ -218,8 +223,94 @@ class ConciliacoesWindow(QWidget):
                 error_dialog = MyErrorMessage("Preencha todos os campos.")
                 error_dialog.exec_()
 
+    def choose_excel(self, event):
+        options = QFileDialog.Options()
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Escolher arquivo Excel ou CSV",
+            "",
+            "Arquivos Excel (*.xlsx);;Arquivos CSV (*.csv);;Todos os arquivos (*)",
+            options=options,
+        )
+
+        if file_path:
+            self.file_path = file_path
+            self.excel_button.setEnabled(True)
+        else:
+            self.excel_button.setEnabled(False)
+
     def excel_button_clicked(self):
-        pass
+        if not hasattr(self, "file_path"):
+            return
+
+        codigo_empresa = self.combo_empresas.currentText().split(" - ")[0]
+        self.excel_thread = ExcelProcessingThread(self.file_path, codigo_empresa)
+        self.excel_thread.data_ready.connect(self.excel_processing_done)
+        self.excel_thread.start()
+
+        self.processing_window = ProcessingWindow()
+        self.processing_window.show()
+
+    def excel_processing_done(self):
+        self.excel_button.setEnabled(False)
+        self.listar_button_clicked(None)
+
+    def edit_cell(self, row, column):
+        if column == 0:
+            # Editar descrição
+            self.editing_row = row
+            item = self.table_widget.item(row, column)
+            current_value = item.text()
+            new_value, ok = QInputDialog.getText(
+                self, "Editar Descrição", "Nova descrição:", text=current_value
+            )
+            if ok:
+                item.setText(new_value)
+                self.update_database("descricao", new_value)
+        elif column == 1:
+            # Editar débito
+            self.editing_row = row
+            item = self.table_widget.item(row, column)
+            current_value = item.text()
+            new_value, ok = QInputDialog.getInt(
+                self, "Editar Débito", "Novo valor de débito:", value=int(current_value)
+            )
+            if ok:
+                item.setText(str(new_value))
+                self.update_database("conta_debito", new_value)
+        elif column == 2:
+            # Editar crédito
+            self.editing_row = row
+            item = self.table_widget.item(row, column)
+            current_value = item.text()
+            new_value, ok = QInputDialog.getInt(
+                self,
+                "Editar Crédito",
+                "Novo valor de crédito:",
+                value=int(current_value),
+            )
+            if ok:
+                item.setText(str(new_value))
+                self.update_database("conta_credito", new_value)
+
+    def update_database(self, field_name, new_value):
+        if self.editing_row is not None:
+            codigo_empresa = self.combo_empresas.currentText().split(" - ")[0]
+            descricao = self.table_widget.item(self.editing_row, 0).text()
+            try:
+                connection = conectar_banco()
+                cursor = connection.cursor()
+                update_query = f"UPDATE conciliacao_{codigo_empresa} SET {field_name} = %s WHERE descricao = %s"
+                cursor.execute(update_query, (new_value, descricao))
+                connection.commit()
+                cursor.close()
+                connection.close()
+            except Exception as e:
+                error_message = MyErrorMessage()
+                error_message.showMessage("Erro ao alterar conciliação " + str(e))
+                error_message.exec_()
+                return False
+            self.editing_row = None
 
 
 def main():
