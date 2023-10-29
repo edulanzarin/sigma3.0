@@ -1,4 +1,6 @@
 import sys
+import pandas as pd
+from unidecode import unidecode
 from datetime import date
 from PyQt5.QtWidgets import (
     QApplication,
@@ -13,6 +15,8 @@ from PyQt5.QtWidgets import (
     QSizePolicy,
     QFileDialog,
     QTableWidgetItem,
+    QInputDialog,
+    QMessageBox,
 )
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt, pyqtSignal, QSize
@@ -22,6 +26,8 @@ from banco_sql_thread import BancoSQLThread
 from carregar_thread import CarregarThread
 from processar_thread import ProcessarThread
 from load_data_thread import LoadDataThread
+from conciliar_thread import ConciliarThread
+from connect_database import conectar_banco
 from error_window import MyErrorMessage
 
 
@@ -73,9 +79,10 @@ class EmpresasWindow(QWidget):
         self.carregar_button.setEnabled(self.is_folder)
 
         self.table_widget = QTableWidget()
-        self.table_widget.setColumnCount(5)
+        self.table_widget.setColumnCount(6)
+        self.table_widget.setColumnHidden(0, True)
         self.table_widget.setHorizontalHeaderLabels(
-            ["Data", "Débito", "Crédito", "Valor", "Descrição"]
+            ["Id", "Data", "Débito", "Crédito", "Valor", "Descrição"]
         )
         self.table_widget.verticalHeader().setVisible(False)
         self.table_widget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
@@ -169,6 +176,7 @@ class EmpresasWindow(QWidget):
         main_layout.addWidget(self.table_widget)
 
         self.setLayout(main_layout)
+        self.table_widget.itemDoubleClicked.connect(self.edit_table_cell)
 
     def init_sql_empresa_thread(self):
         self.sql_thread = EmpresaSQLThread()
@@ -254,9 +262,13 @@ class EmpresasWindow(QWidget):
             self.table_widget.insertRow(rowPosition)
 
             for col, value in enumerate(row):
-                if col == 0 and isinstance(value, date):
+                if col == 1 and isinstance(
+                    value, date
+                ):  # Ajuste para a segunda coluna (data)
                     value = value.strftime("%d/%m/%Y")
-                if (col == 1 or col == 2) and value is None:
+                if (
+                    col == 2 or col == 3
+                ) and value is None:  # Ajuste para as colunas de débito e crédito
                     value = ""
                 item = QTableWidgetItem(str(value))
                 self.table_widget.setItem(rowPosition, col, item)
@@ -292,17 +304,87 @@ class EmpresasWindow(QWidget):
         self.carregamento_finished.emit()
 
     def conciliar_button_clicked(self):
-        pass
+        self.conciliar_button.setEnabled(False)
+        self.processing_window = ProcessingWindow(self)
+        self.processing_window.show()
+        codigo_empresa = self.combo_empresas.currentText().split(" - ")[0]
+        self.conciliar_thread = ConciliarThread(codigo_empresa)
+        self.conciliar_thread.conciliacao_done.connect(self.start_load_data_thread)
+        self.conciliar_thread.finished.connect(self.processing_window.close)
+        self.conciliar_thread.start()
 
     def save_button_clicked(self):
-        if hasattr(self, "processing_window"):
-            self.processing_window.close()
+        options = QFileDialog.Options()
+        file_name, _ = QFileDialog.getSaveFileName(
+            self,
+            "Salvar em Excel",
+            "",
+            "Arquivos Excel (*.xlsx);;Todos os Arquivos (*)",
+            options=options,
+        )
+        if file_name:
+            df = pd.DataFrame()
+            header_items = []
+
+            for col in range(1, self.table_widget.columnCount()):
+                header_items.append(self.table_widget.horizontalHeaderItem(col).text())
+
+            data = []
+            for row in range(self.table_widget.rowCount()):
+                row_data = []
+                for col in range(1, self.table_widget.columnCount()):
+                    item = self.table_widget.item(row, col)
+                    if item:
+                        row_data.append(item.text())
+                    else:
+                        row_data.append("")
+                data.append(row_data)
+            df = pd.DataFrame(data, columns=header_items)
+            try:
+                df.to_excel(file_name, index=False)
+                QMessageBox.information(
+                    self, "Salvo com sucesso", f"A tabela foi salva em {file_name}."
+                )
+            except Exception as e:
+                error_message = MyErrorMessage()
+                error_message.showMessage("Erro ao salvar arquivo " + str(e))
+                error_message.exec_()
 
     def disable_buttons(self):
         self.carregar_button.setEnabled(False)
         self.process_button.setEnabled(False)
         self.conciliar_button.setEnabled(False)
         self.save_button.setEnabled(False)
+
+    def atualizar_coluna_na_bd(self, row, col, new_value):
+        conn = conectar_banco()
+        cursor = conn.cursor()
+
+        id_transacao = self.table_widget.item(row, 0).text()
+        col_name = self.table_widget.horizontalHeaderItem(col).text()
+        col_name = unidecode(col_name).replace("ç", "c").lower()
+        update_query = f"UPDATE transacoes SET {col_name} = %s WHERE id_transacao = %s"
+        values = (new_value, id_transacao)
+
+        cursor.execute(update_query, values)
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+    def edit_table_cell(self, item):
+        col_index = item.column()
+        if col_index in [2, 3]:
+            current_value = item.text()
+            new_value, ok = QInputDialog.getText(
+                self,
+                f"Editar {self.table_widget.horizontalHeaderItem(col_index).text()}",
+                f"Editar {self.table_widget.horizontalHeaderItem(col_index).text()}:",
+                text=current_value,
+            )
+            if ok:
+                item.setText(new_value)
+                row = item.row()
+                self.atualizar_coluna_na_bd(row, col_index, new_value)
 
 
 def main():

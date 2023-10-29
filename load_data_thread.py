@@ -15,7 +15,7 @@ class LoadDataThread(QThread):
         try:
             conn = conectar_banco()
             cursor = conn.cursor()
-            query = "SELECT data_transacao, debito, credito, valor, descricao FROM transacoes"
+            query = "SELECT id_transacao, data_transacao, debito, credito, valor, descricao FROM transacoes"
             cursor.execute(query)
             data = cursor.fetchall()
             conn.close()
