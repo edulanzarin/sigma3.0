@@ -18,11 +18,11 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt, pyqtSignal, QSize
 from processing_window import ProcessingWindow
-from empresa_sql_thread import EmpresaSQLThread
+from threads.empresa_sql_thread import EmpresaSQLThread
 from error_window import MyErrorMessage
 
 
-class EmpresasWindow(QWidget):
+class ConciliacoesWindow(QWidget):
     def __init__(self):
         super().__init__()
 
@@ -177,7 +177,7 @@ class EmpresasWindow(QWidget):
 
 def main():
     app = QApplication(sys.argv)
-    window = EmpresasWindow()
+    window = ConciliacoesWindow()
     window.show()
     sys.exit(app.exec_())
 

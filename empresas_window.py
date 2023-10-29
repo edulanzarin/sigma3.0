@@ -1,7 +1,5 @@
 import sys
-import os
-import pandas as pd
-import PyPDF2
+from datetime import date
 from PyQt5.QtWidgets import (
     QApplication,
     QWidget,
@@ -14,15 +12,17 @@ from PyQt5.QtWidgets import (
     QHeaderView,
     QSizePolicy,
     QFileDialog,
+    QTableWidgetItem,
 )
 from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtCore import Qt, pyqtSignal, QSize
 from processing_window import ProcessingWindow
-from empresa_sql_thread import EmpresaSQLThread
+from threads.empresa_sql_thread import EmpresaSQLThread
+from threads.banco_sql_thread import BancoSQLThread
+from threads.carregar_thread import CarregarThread
+from threads.processar_thread import ProcessarThread
+from threads.load_data_thread import LoadDataThread
 from error_window import MyErrorMessage
-from banco_sql_thread import BancoSQLThread
-from carregar_thread import CarregarThread
-from processar_thread import ProcessarThread
 
 
 class EmpresasWindow(QWidget):
@@ -106,8 +106,10 @@ class EmpresasWindow(QWidget):
 
     def create_carregar_button(self, text, on_click):
         button = QPushButton(text)
+        button.setIcon((QIcon(r".\assets\upload.png")))
+        button.setIconSize(QSize(15, 15))
         button.setStyleSheet(
-            "QPushButton { max-width: 18px; max-height: 18px; font-size: 10px;}"
+            "QPushButton { max-width: 18px; max-height: 18px; font-size: 10px; border: none;}"
         )
         button.setCursor(Qt.PointingHandCursor)
         button.clicked.connect(on_click)
@@ -180,8 +182,9 @@ class EmpresasWindow(QWidget):
 
     def fill_combo_empresas(self, data):
         if data:
+            sorted_data = sorted(data, key=lambda x: x[0])
             self.combo_empresas.clear()
-            for codigo, nome in data:
+            for codigo, nome in sorted_data:
                 self.combo_empresas.addItem(f"{codigo} - {nome}")
 
     def load_empresas(self):
@@ -190,8 +193,9 @@ class EmpresasWindow(QWidget):
 
     def fill_combo_bancos(self, data):
         if data:
+            sorted_data = sorted(data, key=lambda x: x[0])
             self.combo_bancos.clear()
-            for codigo, nome in data:
+            for codigo, nome in sorted_data:
                 self.combo_bancos.addItem(f"{codigo} - {nome}")
 
     def load_bancos(self):
@@ -235,6 +239,26 @@ class EmpresasWindow(QWidget):
     def processar_thread_finished(self, extrato_df):
         self.extrato_df = extrato_df
         self.processamento_finished.emit()
+        self.start_load_data_thread()
+
+    def start_load_data_thread(self):
+        self.load_data_thread = LoadDataThread()
+        self.load_data_thread.data_loaded.connect(self.update_table_widget)
+        self.load_data_thread.start()
+
+    def update_table_widget(self, data):
+        self.table_widget.setRowCount(0)
+        for row in data:
+            rowPosition = self.table_widget.rowCount()
+            self.table_widget.insertRow(rowPosition)
+
+            for col, value in enumerate(row):
+                if col == 0 and isinstance(value, date):
+                    value = value.strftime("%d/%m/%Y")
+                if (col == 1 or col == 2) and value is None:
+                    value = ""
+                item = QTableWidgetItem(str(value))
+                self.table_widget.setItem(rowPosition, col, item)
 
     def choose_pagamentos(self, event):
         self.folder_path = QFileDialog.getExistingDirectory(

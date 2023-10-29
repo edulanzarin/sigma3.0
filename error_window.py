@@ -1,6 +1,5 @@
 from PyQt5.QtWidgets import QErrorMessage
 from PyQt5.QtGui import QIcon
-import sys
 
 
 class MyErrorMessage(QErrorMessage):

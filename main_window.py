@@ -8,12 +8,14 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtGui import QIcon
 import sys
 from empresas_window import EmpresasWindow
+from conciliacao_window import ConciliacoesWindow
 
 
 class MainWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, id_usuario):
         super().__init__()
 
+        self.id_usuario = id_usuario
         icon = QIcon(r".\assets\icon.ico")
         self.setWindowIcon(icon)
         self.setWindowTitle("Sigma")
@@ -41,6 +43,9 @@ class MainWindow(QMainWindow):
         empresas_tab.setLayout(empresas_tab_layout)
 
         conciliacoes_tab_layout = QVBoxLayout()
+        self.conciliacoes_window = ConciliacoesWindow()
+        conciliacoes_tab_layout.addWidget(self.conciliacoes_window)
+        conciliacoes_tab_layout.setStretch(0, 1)
         conciliacoes_tab.setLayout(conciliacoes_tab_layout)
 
         self.setMenuBar(menu_bar)

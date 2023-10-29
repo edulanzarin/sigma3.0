@@ -5,13 +5,13 @@ import PyPDF2
 from datetime import datetime
 from decimal import Decimal
 
-from process_sicredi import process_sicredi
-from process_cresol import process_cresol
-from process_sicoob import process_sicoob
-from process_viacredi import process_viacredi
-from process_safra import process_safra
-from connect_database import conectar_banco
-from error_window import MyErrorMessage
+from ..functions.process_sicredi import process_sicredi
+from ..functions.process_cresol import process_cresol
+from ..functions.process_sicoob import process_sicoob
+from ..functions.process_viacredi import process_viacredi
+from ..functions.process_safra import process_safra
+from ..functions.connect_database import conectar_banco
+from ..error_window import MyErrorMessage
 
 
 class ProcessarThread(QThread):

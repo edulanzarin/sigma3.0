@@ -8,11 +8,12 @@ from PyQt5.QtWidgets import (
     QVBoxLayout,
 )
 from PyQt5.QtGui import QKeySequence, QIcon
-from PyQt5.QtCore import Qt, pyqtSignal, QTimer
-from login_function import (
+from PyQt5.QtCore import Qt, pyqtSignal
+from functions.login_function import (
     verificar_credenciais,
     registrar_login,
 )
+from empresas_window import EmpresasWindow
 
 
 class LoginWindow(QWidget):
@@ -75,4 +76,7 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = LoginWindow()
     window.show()
+    empresas_window = EmpresasWindow()
+    window.login_success.connect(empresas_window.show_empresas_window)
+    window.login_success.connect(empresas_window.load_user_id)
     sys.exit(app.exec_())

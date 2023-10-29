@@ -3,8 +3,8 @@ import pandas as pd
 import os
 import PyPDF2
 
-from comprovante_sicoob import comprovante_sicoob
-from error_window import MyErrorMessage
+from ..functions.comprovante_sicoob import comprovante_sicoob
+from ..error_window import MyErrorMessage
 
 
 class CarregarThread(QThread):
