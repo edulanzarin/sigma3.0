@@ -13,7 +13,7 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtGui import QPixmap, QIcon, QKeySequence
 from PyQt5.QtCore import Qt, pyqtSignal
 from register_window import RegisterWindow
-from functions.login_function import (
+from login_function import (
     verificar_credenciais,
     registrar_login,
 )

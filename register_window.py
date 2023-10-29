@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtGui import QKeySequence, QIcon
 from PyQt5.QtCore import Qt, pyqtSignal
-from functions.register_function import cadastrar_usuario
+from register_function import cadastrar_usuario
 
 
 class RegisterWindow(QWidget):

@@ -1,7 +1,5 @@
 import sys
-import os
 import pandas as pd
-import PyPDF2
 from PyQt5.QtWidgets import (
     QApplication,
     QWidget,
@@ -14,12 +12,17 @@ from PyQt5.QtWidgets import (
     QHeaderView,
     QSizePolicy,
     QFileDialog,
+    QTableWidgetItem,
+    QDialog,
 )
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt, pyqtSignal, QSize
 from processing_window import ProcessingWindow
-from threads.empresa_sql_thread import EmpresaSQLThread
+from empresa_sql_thread import EmpresaSQLThread
 from error_window import MyErrorMessage
+from listar_conciliacoes_thread import ListarConciliacoesThread
+from cadastrar_conciliacoes_thread import CadastrarConciliacoesThread
+from cadastrar_conciliacao_dialog import CadastrarDialog
 
 
 class ConciliacoesWindow(QWidget):
@@ -53,10 +56,9 @@ class ConciliacoesWindow(QWidget):
 
         self.listar_button = self.create_button("Atualizar", self.listar_button_clicked)
 
-        self.conciliar_button = self.create_button(
+        self.cadastrar_button = self.create_button(
             "Cadastrar", self.cadastrar_button_clicked
         )
-        self.conciliar_button.setEnabled(False)
 
         self.save_button = self.create_button("Lista", self.excel_button_clicked)
         self.save_button.setEnabled(False)
@@ -114,7 +116,7 @@ class ConciliacoesWindow(QWidget):
         layout.setAlignment(Qt.AlignTop)
         layout.addStretch(1)
         layout.addWidget(self.listar_button)
-        layout.addWidget(self.conciliar_button)
+        layout.addWidget(self.cadastrar_button)
         layout.addWidget(self.save_button)
         layout.addStretch(1)
         return layout
@@ -140,8 +142,9 @@ class ConciliacoesWindow(QWidget):
 
     def fill_combo_empresas(self, data):
         if data:
+            sorted_data = sorted(data, key=lambda x: x[0])
             self.combo_empresas.clear()
-            for codigo, nome in data:
+            for codigo, nome in sorted_data:
                 self.combo_empresas.addItem(f"{codigo} - {nome}")
 
     def load_empresas(self):
@@ -165,11 +168,55 @@ class ConciliacoesWindow(QWidget):
         if file_name:
             df.to_excel(file_name, index=False)
 
-    def listar_button_clicked(self):
-        pass
+    def listar_button_clicked(self, event):
+        codigo_empresa = self.combo_empresas.currentText()
+        codigo_empresa = codigo_empresa.split(" - ")[0]
+        self.listar_conciliacoes_thread = ListarConciliacoesThread(codigo_empresa)
+        self.listar_conciliacoes_thread.data_ready.connect(self.update_treeview)
+        self.listar_conciliacoes_thread.start()
+
+        self.processing_window = ProcessingWindow()
+        self.processing_window.show()
+
+    def update_treeview(self, data):
+        self.table_widget.setRowCount(0)
+
+        for row_data in data:
+            row_position = self.table_widget.rowCount()
+            self.table_widget.insertRow(row_position)
+
+            for col, value in enumerate(row_data):
+                item = QTableWidgetItem(str(value))
+                self.table_widget.setItem(row_position, col, item)
+
+        self.processing_window.close()
 
     def cadastrar_button_clicked(self):
-        pass
+        cadastrar_dialog = CadastrarDialog()
+        if cadastrar_dialog.exec_() == QDialog.Accepted:
+            descricao, debito_text, credito_text = cadastrar_dialog.get_input_data()
+            if descricao and debito_text and credito_text:
+                try:
+                    debito = int(debito_text)
+                    credito = int(credito_text)
+                except ValueError:
+                    error_dialog = MyErrorMessage(
+                        "Débito e Crédito devem ser números inteiros."
+                    )
+                    error_dialog.exec_()
+                else:
+                    codigo_empresa = self.combo_empresas.currentText()
+                    codigo_empresa = codigo_empresa.split(" - ")[0]
+                    self.cadastrar_conciliacoes_thread = CadastrarConciliacoesThread(
+                        codigo_empresa, descricao, debito, credito
+                    )
+                    self.cadastrar_conciliacoes_thread.cadastro_ready.connect(
+                        lambda: None
+                    )
+                    self.cadastrar_conciliacoes_thread.start()
+            else:
+                error_dialog = MyErrorMessage("Preencha todos os campos.")
+                error_dialog.exec_()
 
     def excel_button_clicked(self):
         pass

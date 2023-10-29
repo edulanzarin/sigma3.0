@@ -1,7 +1,7 @@
 from PyQt5.QtCore import QThread, pyqtSignal
 
-from ..functions.connect_database import conectar_banco
-from ..error_window import MyErrorMessage
+from connect_database import conectar_banco
+from error_window import MyErrorMessage
 
 
 class LoadDataThread(QThread):

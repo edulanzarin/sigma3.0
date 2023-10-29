@@ -17,11 +17,11 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt, pyqtSignal, QSize
 from processing_window import ProcessingWindow
-from threads.empresa_sql_thread import EmpresaSQLThread
-from threads.banco_sql_thread import BancoSQLThread
-from threads.carregar_thread import CarregarThread
-from threads.processar_thread import ProcessarThread
-from threads.load_data_thread import LoadDataThread
+from empresa_sql_thread import EmpresaSQLThread
+from banco_sql_thread import BancoSQLThread
+from carregar_thread import CarregarThread
+from processar_thread import ProcessarThread
+from load_data_thread import LoadDataThread
 from error_window import MyErrorMessage
 
 
@@ -224,6 +224,7 @@ class EmpresasWindow(QWidget):
             self.process_button.setEnabled(False)
             self.processing_window = ProcessingWindow(self)
             self.processing_window.show()
+            self.disable_buttons
             selected_banco = self.combo_bancos.currentText()
             selected_banco = selected_banco.split(" - ")[0]
             self.processar_thread = ProcessarThread(
@@ -259,6 +260,8 @@ class EmpresasWindow(QWidget):
                     value = ""
                 item = QTableWidgetItem(str(value))
                 self.table_widget.setItem(rowPosition, col, item)
+        self.save_button.setEnabled(True)
+        self.conciliar_button.setEnabled(True)
 
     def choose_pagamentos(self, event):
         self.folder_path = QFileDialog.getExistingDirectory(
@@ -294,6 +297,12 @@ class EmpresasWindow(QWidget):
     def save_button_clicked(self):
         if hasattr(self, "processing_window"):
             self.processing_window.close()
+
+    def disable_buttons(self):
+        self.carregar_button.setEnabled(False)
+        self.process_button.setEnabled(False)
+        self.conciliar_button.setEnabled(False)
+        self.save_button.setEnabled(False)
 
 
 def main():

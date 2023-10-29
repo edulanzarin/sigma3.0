@@ -1,6 +1,5 @@
 import pandas as pd
 from decimal import Decimal
-import re
 import pandas as pd
 import PyPDF2
 from PyQt5.QtWidgets import QApplication, QFileDialog

@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtGui import QKeySequence, QIcon
 from PyQt5.QtCore import Qt, pyqtSignal
-from functions.login_function import (
+from login_function import (
     verificar_credenciais,
     registrar_login,
 )
