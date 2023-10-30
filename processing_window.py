@@ -9,7 +9,7 @@ class ProcessingWindow(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        self.setFixedSize(150, 150)
+        self.setFixedSize(205, 205)
         self.setWindowFlags(Qt.FramelessWindowHint)
         self.setAttribute(Qt.WA_TranslucentBackground, True)
 
