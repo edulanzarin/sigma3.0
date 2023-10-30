@@ -75,7 +75,7 @@ class SqlQueryWindow(QWidget):
         main_layout.addLayout(title_layout)
         main_layout.addLayout(horizont_layout)
 
-        result_label = QLabel("Resultados")
+        result_label = QLabel("Result")
         result_label.setStyleSheet("color: #333333; font: bold; font-size: 12px;")
         main_layout.addWidget(result_label, alignment=Qt.AlignHCenter)
 

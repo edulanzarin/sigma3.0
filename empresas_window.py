@@ -236,7 +236,7 @@ class EmpresasWindow(QWidget):
             selected_banco = self.combo_bancos.currentText()
             selected_banco = selected_banco.split(" - ")[0]
             self.processar_thread = ProcessarThread(
-                self.extrato_file_path, selected_banco, self.combined_df
+                self.extrato_file_path, selected_banco
             )
             self.processar_thread.pdf_processed.connect(self.processar_thread_finished)
             self.processar_thread.finished.connect(self.processing_window.close)
@@ -299,8 +299,7 @@ class EmpresasWindow(QWidget):
             )
             self.carregar_thread.start()
 
-    def carregar_thread_finished(self, combined_df):
-        self.combined_df = combined_df
+    def carregar_thread_finished(self):
         self.carregamento_finished.emit()
 
     def conciliar_button_clicked(self):
@@ -391,7 +390,6 @@ def main():
     app = QApplication(sys.argv)
     window = EmpresasWindow()
     window.show()
-    processing_window = ProcessingWindow(window)
     sys.exit(app.exec_())
 
 

@@ -34,6 +34,7 @@ def process_sicoob(dados_pdf):
                 and "BLOQUEADO" not in linha
                 and "Acesse" not in linha
                 and "SALDO DO DIA" not in linha
+                and "*" not in linha
             ):
                 if "(+)" in linha or "(-)" in linha:
                     stop_process = True

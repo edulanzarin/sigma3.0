@@ -17,11 +17,10 @@ from error_window import MyErrorMessage
 class ProcessarThread(QThread):
     pdf_processed = pyqtSignal(pd.DataFrame)
 
-    def __init__(self, extrato_file_path, selected_banco, combined_df):
+    def __init__(self, extrato_file_path, selected_banco):
         super(ProcessarThread, self).__init__()
         self.extrato_file_path = extrato_file_path
         self.selected_banco = selected_banco
-        self.combined_df = combined_df
 
         pdf_path = os.path.join(self.extrato_file_path)
         self.dados_pdf = PyPDF2.PdfReader(open(pdf_path, "rb"))
@@ -53,18 +52,6 @@ class ProcessarThread(QThread):
                     valor = Decimal(row["VALOR"])
                     descricao = str(row["DESCRICAO"])
 
-                    if (
-                        self.selected_banco == "30"
-                        and self.combined_df is not None
-                        and not self.combined_df.empty
-                    ):
-                        matching_row = self.combined_df[
-                            (self.combined_df["VALOR"] == valor)
-                            & (self.combined_df["DATA"] == data_transacao)
-                        ]
-                        if not matching_row.empty:
-                            descricao = matching_row["DESCRICAO"].values[0]
-
                     insert_query = """
                     INSERT INTO transacoes (data_transacao, debito, credito, valor, descricao)
                     VALUES (%s, %s, %s, %s, %s)
@@ -79,6 +66,16 @@ class ProcessarThread(QThread):
                             descricao,
                         ),
                     )
+
+                if self.selected_banco == "30":
+                    update_query = """
+                    UPDATE transacoes AS t
+                    JOIN comprovantes AS c
+                    ON t.data_transacao = c.data AND t.valor = c.valor
+                    SET t.descricao = c.descricao
+                    """
+                    cursor.execute(update_query)
+
                 conn.commit()
                 conn.close()
 
