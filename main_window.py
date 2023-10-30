@@ -9,7 +9,7 @@ from PyQt5.QtGui import QIcon
 import sys
 from empresas_window import EmpresasWindow
 from conciliacao_window import ConciliacoesWindow
-from capitalsix_window import CapitalSixWindow
+from empresas_menu import EmpresasMenu
 from sqlquery_window import SqlQueryWindow
 
 
@@ -32,43 +32,43 @@ class MainWindow(QMainWindow):
         self.tabs = QTabWidget()
         self.tabs.setTabPosition(QTabWidget.North)
 
-        empresas_tab = QWidget()
+        lancamentos_tab = QWidget()
         conciliacoes_tab = QWidget()
-        capitalsix_tab = QWidget()
+        empresas_tab = QWidget()
         sqlquery_tab = QWidget()
 
-        empresas_icon = QIcon(r".\assets\company.png")
+        lancamentos_icon = QIcon(r".\assets\dolar.png")
         conciliacoes_icon = QIcon(r".\assets\lupe.png")
-        capitalsix_icon = QIcon(r".\assets\capitalsix.png")
+        empresas_icon = QIcon(r".\assets\company.png")
         sqlquery_icon = QIcon(r".\assets\sql.png")
 
-        self.tabs.addTab(empresas_tab, empresas_icon, "Empresas")
+        self.tabs.addTab(lancamentos_tab, lancamentos_icon, "Lançamentos")
         self.tabs.addTab(conciliacoes_tab, conciliacoes_icon, "Conciliações")
-        self.tabs.addTab(capitalsix_tab, capitalsix_icon, "Capital Six")
+        self.tabs.addTab(empresas_tab, empresas_icon, "Empresas")
         self.tabs.addTab(sqlquery_tab, sqlquery_icon, "Sql Query")
 
-        empresas_tab_layout = QVBoxLayout()
-        self.empresas_window = EmpresasWindow()
-        empresas_tab_layout.addWidget(self.empresas_window)
-        empresas_tab_layout.setStretch(0, 1)
-        empresas_tab.setLayout(empresas_tab_layout)
+        lancamentos_tab_layout = QVBoxLayout()
+        self.lancamentos_window = EmpresasWindow()
+        lancamentos_tab_layout.addWidget(self.lancamentos_window)
+        lancamentos_tab_layout.setContentsMargins(0, 0, 0, 0)  # Remova as margens
+        lancamentos_tab.setLayout(lancamentos_tab_layout)
 
         conciliacoes_tab_layout = QVBoxLayout()
         self.conciliacoes_window = ConciliacoesWindow()
         conciliacoes_tab_layout.addWidget(self.conciliacoes_window)
-        conciliacoes_tab_layout.setStretch(0, 1)
+        conciliacoes_tab_layout.setContentsMargins(0, 0, 0, 0)  # Remova as margens
         conciliacoes_tab.setLayout(conciliacoes_tab_layout)
 
-        capitalsix_tab_layout = QVBoxLayout()
-        self.capitalsix_window = CapitalSixWindow()
-        capitalsix_tab_layout.addWidget(self.capitalsix_window)
-        capitalsix_tab_layout.setStretch(0, 1)
-        capitalsix_tab.setLayout(capitalsix_tab_layout)
+        empresas_tab_layout = QVBoxLayout()
+        self.empresas_window = EmpresasMenu()
+        empresas_tab_layout.addWidget(self.empresas_window)
+        empresas_tab_layout.setContentsMargins(0, 0, 0, 0)  # Remova as margens
+        empresas_tab.setLayout(empresas_tab_layout)
 
         sqlquery_tab_layout = QVBoxLayout()
         self.sqlquery_window = SqlQueryWindow()
         sqlquery_tab_layout.addWidget(self.sqlquery_window)
-        sqlquery_tab_layout.setStretch(0, 1)
+        sqlquery_tab_layout.setContentsMargins(0, 0, 0, 0)  # Remova as margens
         sqlquery_tab.setLayout(sqlquery_tab_layout)
 
         self.setMenuBar(menu_bar)
