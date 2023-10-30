@@ -1,9 +1,6 @@
 import pandas as pd
 from decimal import Decimal
 import pandas as pd
-import PyPDF2
-from PyQt5.QtWidgets import QApplication, QFileDialog
-
 
 def comprovante_sicoob(dados_pdf):
     data_list = []
@@ -12,6 +9,9 @@ def comprovante_sicoob(dados_pdf):
     desconto_list = []
     juros_list = []
 
+    coleta_ativa = False
+    elementos_coletados = {"data": None, "descricao": None, "valor": None, "desconto": None, "juros": None}
+
     for pagina_num, pagina in enumerate(dados_pdf.pages, 1):
         texto_pagina = pagina.extract_text()
         linhas = texto_pagina.split("\n")
@@ -19,26 +19,34 @@ def comprovante_sicoob(dados_pdf):
         for linha in linhas:
             partes = linha.split(" ")
 
-            if "Data Pagamento:" in linha:
-                data = partes[-1]
-            if "Nome Fantasia Beneficiário:" in linha:
-                descricao = " ".join(partes[4:])
-            if "Valor Documento:" in linha:
-                valor_str = partes[-1]
-                valor_replace = valor_str.replace(".", "").replace(",", ".")
-                valor = Decimal(valor_replace)
-            if "(-)" in linha:
-                desconto_str = partes[-1]
-                desconto = desconto_str.replace(".", "").replace(",", ".")
-            if "(+)" in linha:
-                juros_str = partes[-1]
-                juros = juros_str.replace(".", "").replace(",", ".")
-                if data is not None and descricao is not None and valor is not None:
-                    data_list.append(data)
-                    descricao_list.append(descricao)
-                    valor_list.append(valor)
-                    desconto_list.append(desconto)
-                    juros_list.append(juros)
+            if "Pagamento de Boleto" in linha:
+                coleta_ativa = True
+
+            if coleta_ativa and "Pagador:" not in linha and "CPF/" not in linha and "Nome/" not in linha:
+                if "Nome Fantasia Beneficiário:" in linha or "Nome Fantasia  Beneficiário:" in linha or "Nome Fantasia:" in linha or "Beneficiário:" in linha:
+                    elementos_coletados["descricao"] = " ".join(partes[4:])
+                if "Data Pagamento:" in linha:
+                    elementos_coletados["data"] = partes[-1]
+                if "Valor Documento:" in linha:
+                    valor_str = partes[-1]
+                    valor_replace = valor_str.replace(".", "").replace(",", ".")
+                    elementos_coletados["valor"] = Decimal(valor_replace)
+                if "(-)" in linha:
+                    desconto_str = partes[-1]
+                    elementos_coletados["desconto"] = desconto_str.replace(".", "").replace(",", ".")
+                if "(+)" in linha:
+                    juros_str = partes[-1]
+                    elementos_coletados["juros"] = juros_str.replace(".", "").replace(",", ".")
+
+                if all(elementos_coletados.values()):
+                    # Todos os elementos foram encontrados, podemos sair do loop de coleta
+                    data_list.append(elementos_coletados["data"])
+                    descricao_list.append(elementos_coletados["descricao"])
+                    valor_list.append(elementos_coletados["valor"])
+                    desconto_list.append(elementos_coletados["desconto"])
+                    juros_list.append(elementos_coletados["juros"])
+                    elementos_coletados = {"data": None, "descricao": None, "valor": None, "desconto": None, "juros": None}
+                    coleta_ativa = False
 
     df = pd.DataFrame(
         {
@@ -51,35 +59,3 @@ def comprovante_sicoob(dados_pdf):
     )
 
     return df
-
-
-def main():
-    app = QApplication([])  # Inicializa a aplicação Qt
-
-    # Solicita ao usuário que selecione um arquivo PDF
-    file_dialog = QFileDialog()
-    file_dialog.setFileMode(QFileDialog.ExistingFile)
-    file_dialog.setNameFilter("Arquivos PDF (*.pdf)")
-
-    if file_dialog.exec_():
-        pdf_file_path = file_dialog.selectedFiles()[0]
-
-        # Lê o arquivo PDF
-        pdf_reader = PyPDF2.PdfReader(open(pdf_file_path, "rb"))
-        df = comprovante_sicoob(pdf_reader)  # Processa o PDF
-
-        if not df.empty:
-            # Solicita ao usuário que selecione onde salvar o arquivo Excel
-            file_dialog.setFileMode(QFileDialog.AnyFile)
-            file_dialog.setNameFilter("Arquivos Excel (*.xlsx)")
-            if file_dialog.exec_():
-                excel_file_path = file_dialog.selectedFiles()[0]
-
-                # Salva o DataFrame como arquivo Excel especificando o mecanismo "openpyxl"
-                df.to_excel(excel_file_path, engine="openpyxl", index=False)
-
-                print(f"DataFrame salvo em {excel_file_path}")
-
-
-if __name__ == "__main__":
-    main()
