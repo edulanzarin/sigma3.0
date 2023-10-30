@@ -9,6 +9,8 @@ from PyQt5.QtGui import QIcon
 import sys
 from empresas_window import EmpresasWindow
 from conciliacao_window import ConciliacoesWindow
+from capitalsix_window import CapitalSixWindow
+from sqlquery_window import SqlQueryWindow
 
 
 class MainWindow(QMainWindow):
@@ -32,9 +34,18 @@ class MainWindow(QMainWindow):
 
         empresas_tab = QWidget()
         conciliacoes_tab = QWidget()
+        capitalsix_tab = QWidget()
+        sqlquery_tab = QWidget()
 
-        self.tabs.addTab(empresas_tab, "Empresas")
-        self.tabs.addTab(conciliacoes_tab, "Conciliações")
+        empresas_icon = QIcon(r".\assets\company.png")
+        conciliacoes_icon = QIcon(r".\assets\lupe.png")
+        capitalsix_icon = QIcon(r".\assets\capitalsix.png")
+        sqlquery_icon = QIcon(r".\assets\sql.png")
+
+        self.tabs.addTab(empresas_tab, empresas_icon, "Empresas")
+        self.tabs.addTab(conciliacoes_tab, conciliacoes_icon, "Conciliações")
+        self.tabs.addTab(capitalsix_tab, capitalsix_icon, "Capital Six")
+        self.tabs.addTab(sqlquery_tab, sqlquery_icon, "Sql Query")
 
         empresas_tab_layout = QVBoxLayout()
         self.empresas_window = EmpresasWindow()
@@ -47,6 +58,18 @@ class MainWindow(QMainWindow):
         conciliacoes_tab_layout.addWidget(self.conciliacoes_window)
         conciliacoes_tab_layout.setStretch(0, 1)
         conciliacoes_tab.setLayout(conciliacoes_tab_layout)
+
+        capitalsix_tab_layout = QVBoxLayout()
+        self.capitalsix_window = CapitalSixWindow()
+        capitalsix_tab_layout.addWidget(self.capitalsix_window)
+        capitalsix_tab_layout.setStretch(0, 1)
+        capitalsix_tab.setLayout(capitalsix_tab_layout)
+
+        sqlquery_tab_layout = QVBoxLayout()
+        self.sqlquery_window = SqlQueryWindow()
+        sqlquery_tab_layout.addWidget(self.sqlquery_window)
+        sqlquery_tab_layout.setStretch(0, 1)
+        sqlquery_tab.setLayout(sqlquery_tab_layout)
 
         self.setMenuBar(menu_bar)
         main_layout.addWidget(self.tabs)
