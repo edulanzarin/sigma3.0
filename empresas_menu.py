@@ -1,13 +1,7 @@
-from PyQt5.QtWidgets import (
-    QApplication,
-    QMainWindow,
-    QTabWidget,
-    QWidget,
-    QVBoxLayout,
-)
+from PyQt5.QtWidgets import QApplication, QTabWidget, QWidget, QVBoxLayout, QMainWindow
 from PyQt5.QtGui import QIcon
 import sys
-from emporio_window import EmporioWindow
+from qualitplacas_window import QualitPlacasWindow
 
 
 class EmpresasMenu(QMainWindow):
@@ -24,15 +18,15 @@ class EmpresasMenu(QMainWindow):
         self.tabs = QTabWidget()
         self.tabs.setTabPosition(QTabWidget.North)
 
-        emporio_tab = QWidget()
+        qualitplacas_tab = QWidget()
 
-        self.tabs.addTab(emporio_tab, "Empório Astral")
+        self.tabs.addTab(qualitplacas_tab, "Qualitplacas")
 
-        emporio_tab_layout = QVBoxLayout()
-        self.emporio_window = EmporioWindow()
-        emporio_tab_layout.addWidget(self.emporio_window)
-        emporio_tab_layout.setContentsMargins(0, 0, 0, 0)
-        emporio_tab.setLayout(emporio_tab_layout)
+        qualitplacas_tab_layout = QVBoxLayout()
+        self.qualitplacas_window = QualitPlacasWindow()
+        qualitplacas_tab_layout.addWidget(self.qualitplacas_window)
+        qualitplacas_tab_layout.setContentsMargins(0, 0, 0, 0)
+        qualitplacas_tab.setLayout(qualitplacas_tab_layout)
 
         self.setMenuBar(menu_bar)
         main_layout.addWidget(self.tabs)

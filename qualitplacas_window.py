@@ -1,7 +1,10 @@
 import sys
 import pandas as pd
+<<<<<<< HEAD
 from unidecode import unidecode
 from datetime import date
+=======
+>>>>>>> 1c51f4b6d017f1df829b3efd13b77bfaf1aa5d67
 from PyQt5.QtWidgets import (
     QApplication,
     QWidget,
@@ -15,6 +18,7 @@ from PyQt5.QtWidgets import (
     QSizePolicy,
     QFileDialog,
     QTableWidgetItem,
+<<<<<<< HEAD
     QInputDialog,
     QMessageBox,
 )
@@ -43,6 +47,22 @@ class QualitplacasWindow(QWidget):
             "}"
         )
 
+=======
+    QDialog,
+    QInputDialog,
+)
+from PyQt5.QtGui import QIcon
+from PyQt5.QtCore import Qt, QSize
+from processing_window import ProcessingWindow
+from error_window import MyErrorMessage
+from connect_database import conectar_banco
+
+
+class QualitPlacasWindow(QWidget):
+    def __init__(self):
+        super().__init__()
+
+>>>>>>> 1c51f4b6d017f1df829b3efd13b77bfaf1aa5d67
         self.relatorio_label = QLabel("Clique para selecionar o relatório")
         self.relatorio_label.setStyleSheet(
             "QLabel {"
@@ -55,6 +75,7 @@ class QualitplacasWindow(QWidget):
         self.relatorio_label.setCursor(Qt.PointingHandCursor)
         self.relatorio_label.setOpenExternalLinks(False)
         self.relatorio_label.mousePressEvent = self.choose_relatorio
+<<<<<<< HEAD
         self.is_relatorio = False
         self.carregar_button = self.create_carregar_button(
             "", self.carregar_button_clicked
@@ -66,14 +87,25 @@ class QualitplacasWindow(QWidget):
         self.table_widget.setColumnHidden(0, True)
         self.table_widget.setHorizontalHeaderLabels(
             ["Data", "Débito", "Crédito", "Valor", "Descrição"]
+=======
+
+        self.table_widget = QTableWidget()
+        self.table_widget.setColumnCount(3)
+        self.table_widget.setHorizontalHeaderLabels(
+            ["Data", "Conta Débito", "Conta Crédito"]
+>>>>>>> 1c51f4b6d017f1df829b3efd13b77bfaf1aa5d67
         )
         self.table_widget.verticalHeader().setVisible(False)
         self.table_widget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
+<<<<<<< HEAD
         self.process_button = self.create_button(
             "Processar", self.process_button_clicked
         )
         self.process_button.setEnabled(self.is_relatorio)
+=======
+        self.process_button = self.create_button("Processar", self.process_button_clicked)
+>>>>>>> 1c51f4b6d017f1df829b3efd13b77bfaf1aa5d67
 
         self.save_button = self.create_button("Salvar", self.save_button_clicked)
         self.save_button.setEnabled(False)
@@ -87,7 +119,11 @@ class QualitplacasWindow(QWidget):
         button.clicked.connect(on_click)
         return button
 
+<<<<<<< HEAD
     def create_relatorio_layout(self, icon_name, widget, button):
+=======
+    def create_icon_layout(self, icon_name, widget):
+>>>>>>> 1c51f4b6d017f1df829b3efd13b77bfaf1aa5d67
         layout = QHBoxLayout()
         layout.setAlignment(Qt.AlignTop)
         icon = QIcon(f".\\assets\\{icon_name}")
@@ -98,7 +134,10 @@ class QualitplacasWindow(QWidget):
         icon_label.setMaximumWidth(max_width)
         layout.addWidget(icon_label)
         layout.addWidget(widget)
+<<<<<<< HEAD
         layout.addWidget(button)
+=======
+>>>>>>> 1c51f4b6d017f1df829b3efd13b77bfaf1aa5d67
         return layout
 
     def create_button_layout(self):
@@ -110,6 +149,7 @@ class QualitplacasWindow(QWidget):
         layout.addStretch(1)
         return layout
 
+<<<<<<< HEAD
     def create_carregar_button(self, text, on_click):
         button = QPushButton(text)
         button.setIcon((QIcon(r".\assets\upload.png")))
@@ -121,15 +161,22 @@ class QualitplacasWindow(QWidget):
         button.clicked.connect(on_click)
         return button
 
+=======
+>>>>>>> 1c51f4b6d017f1df829b3efd13b77bfaf1aa5d67
     def init_layout(self):
         main_layout = QVBoxLayout()
         main_layout.setAlignment(Qt.AlignTop)
 
+<<<<<<< HEAD
         main_layout.addWidget(self.title_label)
         main_layout.addLayout(
             self.create_relatorio_layout(
                 "relatorio.png", self.relatorio_label, self.carregar_button
             )
+=======
+        main_layout.addLayout(
+            self.create_icon_layout("payments.png", self.relatorio_label)
+>>>>>>> 1c51f4b6d017f1df829b3efd13b77bfaf1aa5d67
         )
 
         main_layout.addLayout(self.create_button_layout())
@@ -138,6 +185,7 @@ class QualitplacasWindow(QWidget):
         self.setLayout(main_layout)
 
     def choose_relatorio(self, event):
+<<<<<<< HEAD
         options = QFileDialog.Options()
         file_name, _ = QFileDialog.getOpenFileName(
             self,
@@ -153,10 +201,14 @@ class QualitplacasWindow(QWidget):
         else:
             self.is_relatorio = False
         self.carregar_button.setEnabled(self.is_relatorio)
+=======
+        pass
+>>>>>>> 1c51f4b6d017f1df829b3efd13b77bfaf1aa5d67
 
     def process_button_clicked(self):
         pass
 
+<<<<<<< HEAD
     def carregar_button_clicked(self):
         if self.relatorio_file_path:
             self.carregar_button.setEnabled(False)
@@ -180,6 +232,14 @@ class QualitplacasWindow(QWidget):
 def main():
     app = QApplication(sys.argv)
     window = QualitplacasWindow()
+=======
+    def save_button_clicked(self):
+        pass
+
+def main():
+    app = QApplication(sys.argv)
+    window = QualitPlacasWindow()
+>>>>>>> 1c51f4b6d017f1df829b3efd13b77bfaf1aa5d67
     window.show()
     sys.exit(app.exec_())
 
