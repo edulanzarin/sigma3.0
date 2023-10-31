@@ -76,6 +76,53 @@ class ProcessarThread(QThread):
                     """
                     cursor.execute(update_query)
 
+                    juros = None
+                    desconto = None
+
+                    select_desconto_query = """
+                    SELECT data, descricao, desconto, juros
+                    FROM comprovantes
+                    WHERE desconto != 0
+                    """
+                    cursor.execute(select_desconto_query, ())
+                    descontos_data = cursor.fetchone()
+
+                    if descontos_data:
+                        data_transacao = descontos_data[0]
+                        descricao = descontos_data[1]
+                        desconto = descontos_data[2]
+                        juros = descontos_data[3]
+
+                    select_juros_query = """
+                    SELECT data, descricao, desconto, juros
+                    FROM comprovantes
+                    WHERE juros != 0
+                    """
+                    cursor.execute(select_juros_query, ())
+                    juros_data = cursor.fetchone()
+
+                    if juros_data:
+                        data_transacao = juros_data[0]
+                        descricao = juros_data[1]
+                        desconto = juros_data[2]
+                        juros = juros_data[3]
+
+                    if juros != 0:
+                        debito = 4701
+                        credito = None
+                        insert_into_query = """
+                        INSERT INTO transacoes (data_transacao, debito, credito, valor, descricao) VALUES (%s, %s, %s, %s, %s)
+                        """
+                        cursor.execute(insert_into_query, (data_transacao, debito, credito, valor, descricao))
+
+                    elif desconto != 0:
+                        credito = 2858
+                        debito = None
+                        insert_into_query = """
+                        INSERT INTO transacoes (data_transacao, debito, credito, valor, descricao) VALUES (%s, %s, %s, %s, %s)
+                        """
+                        cursor.execute(insert_into_query, (data_transacao, debito, credito, valor, descricao))
+
                 conn.commit()
                 conn.close()
 

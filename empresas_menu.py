@@ -1,50 +1,48 @@
+from PyQt5.QtWidgets import (
+    QApplication,
+    QTabWidget,
+    QWidget,
+    QVBoxLayout,
+    QMainWindow
+)
+from PyQt5.QtGui import QIcon
 import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QTabWidget, QLabel
+from qualitplacas_window import QualitPlacasWindow
 
-class EmpresasMenu(QWidget):
+class EmpresasMenu(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.initUI()
-
-    def initUI(self):
         self.setGeometry(100, 100, 800, 600)
 
-        layout = QVBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 0)  # Set the main layout margin to 0
+        self.central_widget = QWidget()
+        self.setCentralWidget(self.central_widget)
+        main_layout = QVBoxLayout()
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        menu_bar = self.menuBar()
+        self.tabs = QTabWidget()
+        self.tabs.setTabPosition(QTabWidget.North)
 
-        tab_widget = QTabWidget()
-        tab_widget.setContentsMargins(0, 0, 0, 0)  # Set the QTabWidget margin to 0
+        qualitplacas_tab = QWidget()
 
-        tab1 = QWidget()
-        tab2 = QWidget()
-        tab3 = QWidget()
-        tab4 = QWidget()
-        tab5 = QWidget()
+        self.tabs.addTab(qualitplacas_tab, "Qualitplacas")
 
-        tab_widget.addTab(tab1, "Capital Six")
-        tab_widget.addTab(tab2, "Grupo Lojão")
-        tab_widget.addTab(tab3, "Qualitplacas")
-        tab_widget.addTab(tab4, "Astral Blumenau")
-        tab_widget.addTab(tab5, "Empório Astral")
+        qualitplacas_tab_layout = QVBoxLayout()
+        self.qualitplacas_window = QualitPlacasWindow()
+        qualitplacas_tab_layout.addWidget(self.qualitplacas_window)
+        qualitplacas_tab_layout.setContentsMargins(0, 0, 0, 0) 
+        qualitplacas_tab.setLayout(qualitplacas_tab_layout)
 
-        for i, tab in enumerate([tab1, tab2, tab3, tab4, tab5], start=1):
-            label = QLabel(f"Content for Tab {i}")
-            tab.layout = QVBoxLayout()
-            tab.layout.addWidget(label)
-            tab.setLayout(tab.layout)
+        self.setMenuBar(menu_bar)
+        main_layout.addWidget(self.tabs)
+        self.central_widget.setLayout(main_layout)
 
-        # Add the QTabWidget to the main layout
-        layout.addWidget(tab_widget)
+    def open_start_window(self):
+        self.start_window.show()
 
-        # Set the layout for the main window
-        self.setLayout(layout)
 
-def main():
+if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = EmpresasMenu()
     window.show()
     sys.exit(app.exec_())
-
-if __name__ == "__main__":
-    main()
