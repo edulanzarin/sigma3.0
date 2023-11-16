@@ -1,13 +1,8 @@
-from PyQt5.QtWidgets import (
-    QApplication,
-    QTabWidget,
-    QWidget,
-    QVBoxLayout,
-    QMainWindow
-)
+from PyQt5.QtWidgets import QApplication, QTabWidget, QWidget, QVBoxLayout, QMainWindow
 from PyQt5.QtGui import QIcon
 import sys
 from qualitplacas_window import QualitPlacasWindow
+
 
 class EmpresasMenu(QMainWindow):
     def __init__(self):
@@ -30,7 +25,7 @@ class EmpresasMenu(QMainWindow):
         qualitplacas_tab_layout = QVBoxLayout()
         self.qualitplacas_window = QualitPlacasWindow()
         qualitplacas_tab_layout.addWidget(self.qualitplacas_window)
-        qualitplacas_tab_layout.setContentsMargins(0, 0, 0, 0) 
+        qualitplacas_tab_layout.setContentsMargins(0, 0, 0, 0)
         qualitplacas_tab.setLayout(qualitplacas_tab_layout)
 
         self.setMenuBar(menu_bar)
