@@ -11,6 +11,7 @@ from process_sicoob import process_sicoob
 from process_viacredi import process_viacredi
 from process_safra import process_safra
 from connect_database import conectar_banco
+from process_mercadopago import process_mercadopago
 from error_window import MyErrorMessage
 
 
@@ -38,6 +39,8 @@ class ProcessarThread(QThread):
             extrato_df = process_cresol(self.dados_pdf)
         elif self.selected_banco == "30":
             extrato_df = process_sicoob(self.dados_pdf)
+        elif self.selected_banco == "25001":
+            extrato_df = process_mercadopago(self.dados_pdf)
 
         if extrato_df is not None:
             try:
@@ -75,53 +78,6 @@ class ProcessarThread(QThread):
                     SET t.descricao = c.descricao
                     """
                     cursor.execute(update_query)
-
-                    juros = None
-                    desconto = None
-
-                    select_desconto_query = """
-                    SELECT data, descricao, desconto, juros
-                    FROM comprovantes
-                    WHERE desconto != 0
-                    """
-                    cursor.execute(select_desconto_query, ())
-                    descontos_data = cursor.fetchone()
-
-                    if descontos_data:
-                        data_transacao = descontos_data[0]
-                        descricao = descontos_data[1]
-                        desconto = descontos_data[2]
-                        juros = descontos_data[3]
-
-                    select_juros_query = """
-                    SELECT data, descricao, desconto, juros
-                    FROM comprovantes
-                    WHERE juros != 0
-                    """
-                    cursor.execute(select_juros_query, ())
-                    juros_data = cursor.fetchone()
-
-                    if juros_data:
-                        data_transacao = juros_data[0]
-                        descricao = juros_data[1]
-                        desconto = juros_data[2]
-                        juros = juros_data[3]
-
-                    if juros != 0:
-                        debito = 4701
-                        credito = None
-                        insert_into_query = """
-                        INSERT INTO transacoes (data_transacao, debito, credito, valor, descricao) VALUES (%s, %s, %s, %s, %s)
-                        """
-                        cursor.execute(insert_into_query, (data_transacao, debito, credito, valor, descricao))
-
-                    elif desconto != 0:
-                        credito = 2858
-                        debito = None
-                        insert_into_query = """
-                        INSERT INTO transacoes (data_transacao, debito, credito, valor, descricao) VALUES (%s, %s, %s, %s, %s)
-                        """
-                        cursor.execute(insert_into_query, (data_transacao, debito, credito, valor, descricao))
 
                 conn.commit()
                 conn.close()
